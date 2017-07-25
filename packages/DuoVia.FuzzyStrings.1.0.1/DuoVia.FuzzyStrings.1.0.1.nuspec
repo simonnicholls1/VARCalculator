@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>DuoVia.FuzzyStrings</id>
+    <version>1.0.1</version>
+    <title>DuoVia.FuzzyStrings</title>
+    <authors>Tyler Jensen</authors>
+    <owners>Tyler Jensen</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>https://github.com/tylerjensen/duovia-fuzzystrings</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A Collection of Fuzzy String Algorithms for .NET.</description>
+    <summary />
+    <releaseNotes>Minor bug fix to DoubleMetaphone. (Fixes issue #1)</releaseNotes>
+    <copyright>Copyright 2013-2014 Tyler Jensen</copyright>
+    <tags>Fuzzy Strings Dice Coefficient Levenshtein LCS DoubleMetaphone</tags>
+  </metadata>
+</package>
