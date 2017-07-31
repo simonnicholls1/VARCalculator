@@ -1,17 +1,17 @@
 ﻿using Deedle;
-using FuzzyLogicSearch.DataAccess;
-using FuzzyLogicSearch.Model;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VARCalculator.DataAccess;
+using VARCalculator.Model;
 
 
 namespace VARCalculator.Services
 {
-    class VARProcessor
+    public class VARProcessor
     {
         //Services
         ReturnsDAO returnsDAO;
@@ -20,15 +20,24 @@ namespace VARCalculator.Services
         ConcurrentDictionary<string, InstrumentModel> instrumentDictionary;
         Dictionary<string, double> portfolioWeights;
 
-        public void VARProcessor()
+        public VARProcessor()
         {
             varCalculator = new VARCalculatorService();
             returnsDAO = new ReturnsDAO();
+            returnsDAO.LoadInstrumentReturnsMemory();
 
             instrumentDictionary = new ConcurrentDictionary<string, InstrumentModel>();
+
+            //TEST DATA
+            portfolioWeights = new Dictionary<string, double>();
+            double weight = (1 / 3000.00);
+            for(int i =1; i < 3000; i++)
+            {
+                portfolioWeights.Add(i.ToString() , weight);
+            }
         }
 
-        public double ProcessVAR(double portfolioValue, double confidenceLevel, DateTime startDate, DateTime endDate)
+        public VAROutputModel ProcessVAR(double portfolioValue, double confidenceLevel, DateTime startDate, DateTime endDate)
         {
             
 
@@ -41,13 +50,12 @@ namespace VARCalculator.Services
 
                 //Get returns for specific instrument, should think about not storing this in 
                 //object if already have returns in memory
-                currentInstrument.instrumentReturns = returnsDAO.getInstrumentReturns(instrument.Key, startDate, endDate)
+                currentInstrument.instrumentReturns = returnsDAO.getInstrumentReturns(instrument.Key, startDate, endDate);
 
                 //Calculate mean and vol for VAR and store in stock object
                 //TODO convert dataframe to array of returns
-                double[] returns;
-                currentInstrument.mean = varCalculator.calculateMean(returns);
-                currentInstrument.volatility = varCalculator.calculateVol(returns, currentInstrument.mean);
+                currentInstrument.mean = varCalculator.calculateMean(currentInstrument.instrumentReturns);
+                currentInstrument.volatility = varCalculator.calculateVol(currentInstrument.instrumentReturns);
 
                 //Need how much of the stock we own to calculate VAR
                 double amountOwned = instrument.Value * portfolioValue;
@@ -60,22 +68,17 @@ namespace VARCalculator.Services
             });
 
             //Now work out total var of portfolio
-            double totalVar;
+            double totalVAR = 0;
 
             foreach(string instrumentID in instrumentDictionary.Keys)
             {
-                totalVar += instrumentDictionary[instrumentID].VAR;
+                totalVAR += instrumentDictionary[instrumentID].VAR;
             }
 
-            return totalVar;
+            VAROutputModel VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, totalVAR);
+
+            return VAROutput;
         }
               
-
-        static void ProcessDataLoadQueue()
-        {
-
-        }
-
-
     }
 }

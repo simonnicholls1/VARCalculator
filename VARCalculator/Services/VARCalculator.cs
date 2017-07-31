@@ -1,6 +1,4 @@
 ﻿using Deedle;
-using FuzzyLogicSearch.DataAccess;
-using FuzzyLogicSearch.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +19,7 @@ namespace VARCalculator.Services
             return VAR;
         }
 
-        public double calculateMean(double[] returns)
+        public double calculateMeanOld(double[] returns)
         {
             double meanReturn;
 
@@ -30,7 +28,7 @@ namespace VARCalculator.Services
 
         }
 
-        public double calculateVol(double[] returns, double? mean)
+        public double calculateVolOld(double[] returns, double? mean)
         {
             double volatility;
             double meanReturns;
@@ -44,7 +42,7 @@ namespace VARCalculator.Services
                meanReturns = mean.GetValueOrDefault();
             }
 
-            double sumOfDeviation;
+            double sumOfDeviation = 0;
             foreach(double returnValue in returns)
             {
                 sumOfDeviation += returnValue * returnValue;
@@ -60,19 +58,16 @@ namespace VARCalculator.Services
         }
 
 
-        public Double calculateMeanOld(Frame<int, string> timeSeriesReturns, string returnsKey, string dateKey)
+        public Double calculateMean(Series<DateTime, double> timeSeriesReturns)
         {
-            Frame<DateTime, String> frameDate = timeSeriesReturns.IndexRows<DateTime>(dateKey).SortRowsByKey();
-            Series<DateTime, Double> instOpen = frameDate.GetColumn<double>(returnsKey);
-            Double mean = instOpen.Mean();
+
+            Double mean = timeSeriesReturns.Mean();
             return mean;
         }
 
-        public Double calculateVolOld(Frame<int, string> timeSeriesReturns, string returnsKey, string dateKey)
+        public Double calculateVol(Series<DateTime, double> timeSeriesReturns)
         {
-            Frame<DateTime, String> frameDate = timeSeriesReturns.IndexRows<DateTime>(dateKey).SortRowsByKey();
-            Series<DateTime, Double> instOpen = frameDate.GetColumn<double>(returnsKey);
-            Double vol = instOpen.StdDev();
+            Double vol = timeSeriesReturns.StdDev();
             return vol;
         }
     }

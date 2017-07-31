@@ -1,13 +1,14 @@
 ﻿using Deedle;
+using System;
 using System.ComponentModel;
 
 
-namespace FuzzyLogicSearch.Model
+namespace VARCalculator.Model
 {
     public class InstrumentModel
     {
         public string instrumentID { get; set; }
-        public Frame<int, string> instrumentReturns { get; set; }
+        public Series<DateTime, double> instrumentReturns { get; set; }
         public double portfolioWeight { get; set; }
         public double mean { get; set; }
         public double volatility { get; set; }

@@ -1,19 +1,17 @@
 ﻿using Deedle;
-using FuzzyLogicSearch.Interfaces;
-using FuzzyLogicSearch.Model;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Odbc;
 using System.IO;
+using VARCalculator.Model;
 
-namespace FuzzyLogicSearch.DataAccess
+namespace VARCalculator.DataAccess
 {
-    class ReturnsDAO : IReportDAO<InstrumentModel>
+    class ReturnsDAO
     {
-        
-        private OdbcConnection connection;
+        Frame<DateTime, string> instrumentReturnsHistory;
 
         public ReturnsDAO()
         {
@@ -21,140 +19,29 @@ namespace FuzzyLogicSearch.DataAccess
 
         }
 
-        public List<InstrumentModel> GetData()
+
+        public void LoadInstrumentReturnsMemory()
         {
-            List<InstrumentModel> instrumentData = new List<InstrumentModel>();
-            OdbcDataReader dataReader = null;
-            OdbcCommand command = null;
-
-            //Make file name from date string
+            
             string fileName = ConfigurationManager.AppSettings["InstrumentDataFileName"].ToString();
-
+            string fullFilePath = Environment.CurrentDirectory + "/" + fileName;
             try
             {
-                command = new OdbcCommand("SELECT * FROM [" + fileName + "]", connection);
-                connection.Open();
-                dataReader = command.ExecuteReader(CommandBehavior.SequentialAccess);
-
-                while (dataReader.Read())
-                {
-                    InstrumentModel instrument = new InstrumentModel();
-
-                    if (!(dataReader[0].ToString() == string.Empty))
-                    {
-
-                        instrument.Identifier = dataReader[0].ToString();
-                        instrument.InstrumentName = dataReader[1].ToString().Replace(" Prices, Dividends, Splits and Trading Volume", "");
-
-                        instrumentData.Add(instrument);
-                    }
-                    else
-                    {
-                        instrumentData.Add(instrument);
-                    }
-                }
-            }
-            catch (OdbcException ex)
-            {
-                throw new DAOException(DAOException.FILE_NA, "Could not open file, check it exists or is not already in use", ex);
-            }
-            catch (FormatException ex)
-            {
-                throw new DAOException(DAOException.FILE_PARSE_ERROR, "Could not parse the data correctly please check output and try again", ex);
-            }
-            catch  (InvalidCastException ex)
-            {
-                throw new DAOException(DAOException.FILE_PARSE_ERROR, "Error when casting data please check output and try again", ex);
+                Frame<int, string> instrumentReturns = Frame.ReadCsv(fullFilePath);
+                instrumentReturnsHistory = instrumentReturns.IndexRows<DateTime>("Date").SortRowsByKey();
             }
             catch (Exception ex)
             {
                 throw new DAOException(DAOException.UNKNOWN_ERROR, "Unknown error occurred when opening file", ex);
             }
-            finally
-            {
-                if(dataReader != null)
-                {
-                    dataReader.Close();
-                }
-                if(command != null)
-                {
-                    command.Dispose();
-                }
-               
-                connection.Close();
-            }
-
-            return instrumentData;
+          
         }
 
-        public List<InstrumentModel> GetStockReturns(string stockID)
+        public Series<DateTime, double> getInstrumentReturns(string instrumentID, DateTime startDate, DateTime endDate)
         {
-            List<InstrumentModel> instrumentData = new List<InstrumentModel>();
-
-            //Make file name from date string
-            string fileName = ConfigurationManager.AppSettings["InstrumentDataFileName"].ToString();
-            Frame<int, string> returns = Frame.ReadCsv(Path.Combine(root, "../Data/stocks/msft.csv"));
-
-            try
-            {
-                command = new OdbcCommand("SELECT identifier, instrument_name FROM " + fileName + " WHERE instrument_name like " + filter + "%", connection);
-                connection.Open();
-                dataReader = command.ExecuteReader(CommandBehavior.SequentialAccess);
-
-                while (dataReader.Read())
-                {
-                    InstrumentModel instrument = new InstrumentModel();
-
-                    if (!(dataReader[0].ToString() == string.Empty))
-                    {
-
-                        instrument.Identifier = dataReader[0].ToString();
-                        instrument.InstrumentName = dataReader[1].ToString();
-
-                        instrumentData.Add(instrument);
-                    }
-                    else
-                    {
-                        instrumentData.Add(instrument);
-                    }
-                }
-            }
-            catch (OdbcException ex)
-            {
-                throw new DAOException(DAOException.FILE_NA, "Could not open file, check it exists or is not already in use", ex);
-            }
-            catch (FormatException ex)
-            {
-                throw new DAOException(DAOException.FILE_PARSE_ERROR, "Could not parse the data correctly please check output and try again", ex);
-            }
-            catch (InvalidCastException ex)
-            {
-                throw new DAOException(DAOException.FILE_PARSE_ERROR, "Error when casting data please check output and try again", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new DAOException(DAOException.UNKNOWN_ERROR, "Unknown error occurred when opening file", ex);
-            }
-            finally
-            {
-                if (dataReader != null)
-                {
-                    dataReader.Close();
-                }
-                if (command != null)
-                {
-                    command.Dispose();
-                }
-
-                connection.Close();
-            }
-
-            return instrumentData;
-        }
-
-        internal Frame<int, string> getInstrumentReturns(string p, DateTime startDate, DateTime endDate)
-        {
-            throw new NotImplementedException();
+            Series<DateTime, double> instrumentReturnsColumn = instrumentReturnsHistory.GetColumn<double>("1");
+            var instrumentReturns = instrumentReturnsColumn.Between(startDate, endDate);
+            return instrumentReturns;
         }
     }
 }

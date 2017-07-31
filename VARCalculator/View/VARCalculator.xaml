@@ -1,0 +1,51 @@
+﻿<Controls:MetroWindow  x:Class="VARCalculator.MainWindow"
+        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ViewModel="clr-namespace:VARCalculator.ViewModel"
+        Title="VAR Calculator" Height="350" Width="554.711"
+                       
+        EnableDWMDropShadow="True"
+        ResizeMode="NoResize"
+
+        WindowTransitionsEnabled="False"
+        WindowStartupLocation="CenterScreen"                       
+        >
+    <Grid Margin="0.2,10.2,-1.2,0.8">
+        <Grid.ColumnDefinitions>
+
+        </Grid.ColumnDefinitions>
+        <ListView  ItemsSource="{Binding VAROutputList}"  HorizontalAlignment="Left" Height="203" Margin="7,98,0,0" VerticalAlignment="Top" Width="533">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="100" Header="Run Date" DisplayMemberBinding="{Binding Path=RunDate , StringFormat=d}" />
+                    <GridViewColumn Width="80" Header="Count" DisplayMemberBinding="{Binding Path=InstrumentCount}" />
+                    <GridViewColumn Width="90" Header="Start Date" DisplayMemberBinding="{Binding Path=StartDate , StringFormat=d}" />
+                    <GridViewColumn Width="90" Header="End Date" DisplayMemberBinding="{Binding Path=EndDate , StringFormat=d}" />
+                    <GridViewColumn Width="90" Header="Conf Level" DisplayMemberBinding="{Binding Path=ConfLevel}" />
+                    <GridViewColumn Width="150" Header="VAR" DisplayMemberBinding="{Binding Path=VAR}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Label HorizontalAlignment="Left" Margin="415,52,0,218" />
+        <Controls:SplitButton 
+        HorizontalAlignment="Right" Height="23" Width="40" Margin="0,52,396,0"
+        SelectedIndex="{Binding SelectedConfLevel}"
+        ItemsSource="{Binding ConfLevelList}"
+        DisplayMemberPath="ConfLevel"
+        VerticalAlignment="Top" />
+        <Label Content="Confidence Level:" HorizontalAlignment="Left" Margin="7,52,0,0" VerticalAlignment="Top"/>
+        <Label Content="Portfolio Value($):" HorizontalAlignment="Left" Margin="162,52,0,0" VerticalAlignment="Top"/>
+        <Label Content="End Date:" HorizontalAlignment="Left" Margin="202,10,0,0" VerticalAlignment="Top"/>
+        <Label Content="Start Date:" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top"/>
+        <DatePicker Height="25" HorizontalAlignment="Left" Margin="71,11,0,0" Name="startDatePicker" VerticalAlignment="Top" 
+         Width="115" SelectedDate="{Binding StartDate, Mode=TwoWay}" DisplayDate="{Binding DateTime.Now}" />
+        <DatePicker Height="25" HorizontalAlignment="Left" Margin="263,10,0,0" x:Name="endDatePicker" VerticalAlignment="Top" 
+         Width="115" SelectedDate="{Binding EndDate, Mode=TwoWay}" DisplayDate="{Binding DateTime.Now}"/>
+        <Button Content="Clear Grid" Background="AliceBlue" Command="{Binding ClearGridClick}" Margin="385,57,90,227" />
+        <Button Content="Calculate" Background="AliceBlue" Command="{Binding VARCalculateClick}" Margin="465,57,10,227" />
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="267,52,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="99"/>
+
+    </Grid>
+
+</Controls:MetroWindow>

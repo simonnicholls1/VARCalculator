@@ -40,6 +40,7 @@
     <Reference Include="DuoVia.FuzzyStrings">
       <HintPath>..\packages\DuoVia.FuzzyStrings.1.0.1\lib\net40\DuoVia.FuzzyStrings.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.1.6.0-alpha009\lib\net45\MahApps.Metro.dll</HintPath>
     </Reference>
@@ -69,12 +70,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\VAROutputModel.cs" />
+    <Compile Include="Model\ConfLevelModel.cs" />
     <Compile Include="Services\VARProcessor.cs" />
     <Compile Include="Services\VARCalculator.cs" />
-    <Compile Include="ViewModel\DelegateCommand.cs" />
-    <Compile Include="ViewModel\InstrumentSearchViewModel.cs" />
+    <Compile Include="ViewModel\CommandHandler.cs" />
+    <Compile Include="ViewModel\VARCalculatorViewModel.cs" />
     <Compile Include="ViewModel\ObservableObject.cs" />
-    <Compile Include="View\InstrumentSearch.xaml.cs" />
+    <Compile Include="View\VARCalculator.xaml.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -86,9 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\InstrumentModel.cs" />
-    <Compile Include="Model\InstrumentSearchModel.cs" />
-    <Compile Include="Model\MatchAlgoModel.cs" />
-    <Compile Include="Model\ThresholdModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -106,7 +106,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Data\stock_list.csv" />
+    <None Include="Data\stock_list.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -119,7 +121,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Page Include="View\InstrumentSearch.xaml">
+    <Page Include="View\VARCalculator.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

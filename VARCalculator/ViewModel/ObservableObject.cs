@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace FuzzyLogicSearch.ViewModel
+namespace VARCalculator.ViewModel
 {
     public class ObservableObject : INotifyPropertyChanged
     {
