@@ -11,7 +11,7 @@ namespace VARCalculator.DataAccess
 {
     class ReturnsDAO
     {
-        Frame<DateTime, string> instrumentReturnsHistory;
+        Frame<DateTime, string> instrumentPricesHistory;
 
         public ReturnsDAO()
         {
@@ -20,15 +20,16 @@ namespace VARCalculator.DataAccess
         }
 
 
-        public void LoadInstrumentReturnsMemory()
+        public void LoadInstrumentPricesMemory()
         {
             
             string fileName = ConfigurationManager.AppSettings["InstrumentDataFileName"].ToString();
             string fullFilePath = Environment.CurrentDirectory + "/" + fileName;
             try
             {
-                Frame<int, string> instrumentReturns = Frame.ReadCsv(fullFilePath);
-                instrumentReturnsHistory = instrumentReturns.IndexRows<DateTime>("Date").SortRowsByKey();
+                Frame<int, string> instrumentPrices = Frame.ReadCsv(fullFilePath);
+                instrumentPricesHistory = instrumentPrices.IndexRows<DateTime>("Date").SortRowsByKey();
+            
             }
             catch (Exception ex)
             {
@@ -39,9 +40,11 @@ namespace VARCalculator.DataAccess
 
         public Series<DateTime, double> getInstrumentReturns(string instrumentID, DateTime startDate, DateTime endDate)
         {
-            Series<DateTime, double> instrumentReturnsColumn = instrumentReturnsHistory.GetColumn<double>("1");
-            var instrumentReturns = instrumentReturnsColumn.Between(startDate, endDate);
-            return instrumentReturns;
+            Series<DateTime, double> instrumentPricesColumn = instrumentPricesHistory.GetColumn<double>(instrumentID);
+            Series<DateTime, double> instrumentPrices = instrumentPricesColumn.Between(startDate, endDate);
+            Series<DateTime, double> instrumentReturns = instrumentPrices.Diff(1) / instrumentPrices;
+
+            return instrumentReturns.DropMissing();
         }
     }
 }

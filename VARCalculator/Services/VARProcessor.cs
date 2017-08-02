@@ -1,4 +1,5 @@
 ﻿using Deedle;
+using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,22 +17,19 @@ namespace VARCalculator.Services
         //Services
         ReturnsDAO returnsDAO;
         VARCalculatorService varCalculator;
-
-        ConcurrentDictionary<string, InstrumentModel> instrumentDictionary;
         Dictionary<string, double> portfolioWeights;
 
         public VARProcessor()
         {
             varCalculator = new VARCalculatorService();
             returnsDAO = new ReturnsDAO();
-            returnsDAO.LoadInstrumentReturnsMemory();
+            returnsDAO.LoadInstrumentPricesMemory();
 
-            instrumentDictionary = new ConcurrentDictionary<string, InstrumentModel>();
-
-            //TEST DATA
+            //TEST WEIGHT DATA
+            double noOfStocks = 3000;
             portfolioWeights = new Dictionary<string, double>();
-            double weight = (1 / 3000.00);
-            for(int i =1; i < 3000; i++)
+            double weight = (1 / noOfStocks);
+            for (int i = 0; i < noOfStocks; i++)
             {
                 portfolioWeights.Add(i.ToString() , weight);
             }
@@ -39,7 +37,8 @@ namespace VARCalculator.Services
 
         public VAROutputModel ProcessVAR(double portfolioValue, double confidenceLevel, DateTime startDate, DateTime endDate)
         {
-            
+
+            ConcurrentDictionary<string, InstrumentModel> instrumentDictionary = new ConcurrentDictionary<string, InstrumentModel>();
 
             Parallel.ForEach(portfolioWeights, instrument =>
             {
@@ -61,21 +60,19 @@ namespace VARCalculator.Services
                 double amountOwned = instrument.Value * portfolioValue;
 
                 //Now calculate VAR
-                currentInstrument.VAR = varCalculator.calculateVAR(instrument.Key, amountOwned, currentInstrument.mean, currentInstrument.volatility, confidenceLevel);
+                //currentInstrument.VAR = varCalculator.calculateVAR(instrument.Key, amountOwned, currentInstrument.mean, currentInstrument.volatility, confidenceLevel);
 
                 //Add stock to concurrent dcitionary of instruments
                 instrumentDictionary.TryAdd(instrument.Key, currentInstrument);                
             });
 
+            //Produce covariance matrix
+            double portfolioVol = varCalculator.calculatePortfolioVol(instrumentDictionary, portfolioWeights);
+
             //Now work out total var of portfolio
-            double totalVAR = 0;
+            double totalVAR = varCalculator.calculateVAR(portfolioValue, portfolioVol, confidenceLevel);
 
-            foreach(string instrumentID in instrumentDictionary.Keys)
-            {
-                totalVAR += instrumentDictionary[instrumentID].VAR;
-            }
-
-            VAROutputModel VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, totalVAR);
+            VAROutputModel VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, portfolioValue, confidenceLevel * 100, Math.Round(totalVAR, 2));
 
             return VAROutput;
         }

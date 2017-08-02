@@ -33,6 +33,8 @@ namespace VARCalculator.ViewModel
         {
             VARService = new VARProcessor();
 
+            //Set portfolio value
+            portfolioValue = 1000000;
 
             //Set start and end dates
             startDate = new DateTime(2012, 1, 1);
@@ -49,8 +51,9 @@ namespace VARCalculator.ViewModel
             confLevelList.Add(new ConfLevelModel(97));
             confLevelList.Add(new ConfLevelModel(98));
             confLevelList.Add(new ConfLevelModel(99));
-            selectedConfLevelIndex = "0";
-            selectedConfLevel = 99;            
+            selectedConfLevelIndex = "9";
+            selectedConfLevel = 99;
+            
         }
 
        
@@ -94,13 +97,13 @@ namespace VARCalculator.ViewModel
             }
         }
 
-        public double PortfolioValue
+        public string PortfolioValue
         {
-            get { return portfolioValue; }
+            get { return portfolioValue.ToString(); }
 
             set
             {
-                portfolioValue = value;
+                portfolioValue = Convert.ToDouble(value);
             }
         }
 
@@ -116,7 +119,7 @@ namespace VARCalculator.ViewModel
         private async void CalculateVAR()
         {
             //Async task to stop blocking of UI
-            VAROutputModel VAROutput = await Task.Run(() => VARService.ProcessVAR(portfolioValue, selectedConfLevel, startDate, endDate));
+            VAROutputModel VAROutput = await Task.Run(() => VARService.ProcessVAR(portfolioValue, selectedConfLevel/100, startDate, endDate));
             varOutputList.Add(VAROutput);
         }
 
