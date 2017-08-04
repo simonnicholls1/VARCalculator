@@ -26,7 +26,5 @@ C:\VARCalculator\VARCalculator\VARCalculator\obj\Debug\VARCalculator.Properties.
 C:\VARCalculator\VARCalculator\VARCalculator\obj\Debug\VARCalculator.csproj.GenerateResource.Cache
 C:\VARCalculator\VARCalculator\VARCalculator\obj\Debug\VARCalculator.exe
 C:\VARCalculator\VARCalculator\VARCalculator\obj\Debug\VARCalculator.pdb
-C:\VARCalculator\VARCalculator\VARCalculator\bin\Debug\Data\citi_prices.csv
-C:\VARCalculator\VARCalculator\VARCalculator\bin\Debug\Data\stock_list_old.csv
 C:\VARCalculator\VARCalculator\VARCalculator\bin\Debug\Data\stock_list.csv
 C:\VARCalculator\VARCalculator\VARCalculator\bin\Debug\Data\two_stock_list.csv

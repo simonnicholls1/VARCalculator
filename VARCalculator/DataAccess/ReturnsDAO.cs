@@ -11,14 +11,7 @@ namespace VARCalculator.DataAccess
 {
     class ReturnsDAO
     {
-        Frame<DateTime, string> instrumentPricesHistory;
-
-        public ReturnsDAO()
-        {
-           
-
-        }
-
+        public Frame<DateTime, string> instrumentPricesHistory;
 
         public void LoadInstrumentPricesMemory()
         {
@@ -31,20 +24,42 @@ namespace VARCalculator.DataAccess
                 instrumentPricesHistory = instrumentPrices.IndexRows<DateTime>("Date").SortRowsByKey();
             
             }
+            catch(FileNotFoundException ex)
+            {
+                throw new DAOException(DAOException.FILE_NA, "Could not open file, check it exists or is not already in use", ex);
+            }
             catch (Exception ex)
             {
                 throw new DAOException(DAOException.UNKNOWN_ERROR, "Unknown error occurred when opening file", ex);
             }
-          
+
         }
 
-        public Series<DateTime, double> getInstrumentReturns(string instrumentID, DateTime startDate, DateTime endDate)
+        public double[] getInstrumentReturns(string instrumentID, DateTime startDate, DateTime endDate)
         {
-            Series<DateTime, double> instrumentPricesColumn = instrumentPricesHistory.GetColumn<double>(instrumentID);
-            Series<DateTime, double> instrumentPrices = instrumentPricesColumn.Between(startDate, endDate);
-            Series<DateTime, double> instrumentReturns = instrumentPrices.Diff(1) / instrumentPrices;
 
-            return instrumentReturns.DropMissing();
+            double[] returnsArray = null;
+
+            try
+            {
+                Series<DateTime, double> instrumentPricesColumn = instrumentPricesHistory.GetColumn<double>(instrumentID);
+                Series<DateTime, double> instrumentPrices = instrumentPricesColumn.Between(startDate, endDate);
+                Series<DateTime, double> instrumentReturns = (instrumentPrices.Diff(1) / instrumentPrices).DropMissing();
+
+                returnsArray = new double[instrumentReturns.ValueCount];
+
+                int i = 0;
+                foreach (double instrumentReturn in instrumentReturns.Values)
+                {
+                    returnsArray[i] = instrumentReturn;
+                    i++;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new DAOException(DAOException.UNKNOWN_ERROR, "Unknown error occurred when trying to obatain returns", ex);
+            }
+            return returnsArray;
         }
     }
 }

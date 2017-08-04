@@ -30,22 +30,31 @@
         </ListView>
         <Label HorizontalAlignment="Left" Margin="415,52,0,218" />
         <Controls:SplitButton 
-        HorizontalAlignment="Right" Height="23" Width="40" Margin="0,52,491,0"
+        HorizontalAlignment="Right" Height="23" Width="40" Margin="0,52,537,0"
         SelectedIndex="{Binding SelectedConfLevel}"
         ItemsSource="{Binding ConfLevelList}"
         DisplayMemberPath="ConfLevel"
         VerticalAlignment="Top" />
-        <Label Content="Confidence Level:" HorizontalAlignment="Left" Margin="7,52,0,0" VerticalAlignment="Top"/>
-        <Label Content="Portfolio Value($):" HorizontalAlignment="Left" Margin="168,52,0,0" VerticalAlignment="Top"/>
+        <Label Content="Confidence:" HorizontalAlignment="Left" Margin="-2,52,0,0" VerticalAlignment="Top"/>
+        <Label Content="Value($):" HorizontalAlignment="Left" Margin="235,52,0,0" VerticalAlignment="Top"/>
         <Label Content="End Date:" HorizontalAlignment="Left" Margin="202,10,0,0" VerticalAlignment="Top"/>
-        <Label Content="Start Date:" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top"/>
-        <DatePicker Height="25" HorizontalAlignment="Left" Margin="71,11,0,0" Name="startDatePicker" VerticalAlignment="Top" 
+        <Label Content="Start Date:" HorizontalAlignment="Left" Margin="-1,10,0,0" VerticalAlignment="Top"/>
+        <DatePicker Height="25" HorizontalAlignment="Left" Margin="68,11,0,0" Name="startDatePicker" VerticalAlignment="Top" 
          Width="115" SelectedDate="{Binding StartDate, Mode=TwoWay}" DisplayDate="{Binding DateTime.Now}" />
         <DatePicker Height="25" HorizontalAlignment="Left" Margin="263,10,0,0" x:Name="endDatePicker" VerticalAlignment="Top" 
          Width="115" SelectedDate="{Binding EndDate, Mode=TwoWay}" DisplayDate="{Binding DateTime.Now}"/>
-        <Button Content="Clear Grid" Background="AliceBlue" Command="{Binding ClearGridClick}" Margin="400,57,157,227" />
-        <Button Content="Calculate" Background="AliceBlue" Command="{Binding VARCalculateClick}" Margin="503,57,47,227" />
-        <TextBox HorizontalAlignment="Left" Height="23" Margin="280,52,0,0" Text="{Binding Path=PortfolioValue}" TextWrapping="Wrap" VerticalAlignment="Top" Width="99"/>
+        <Button Content="Clear Grid" Background="AliceBlue" Command="{Binding ClearGridClick}" Margin="400,52,157,232" />
+        <Button Content="{Binding CalculateLabel}" Background="AliceBlue" Command="{Binding VARCalculateClick}" Margin="503,52,47,232" />
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="294,52,0,0" Text="{Binding Path=PortfolioValue}" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
+        <ProgressBar HorizontalAlignment="Left" Margin="404,6,0,0" VerticalAlignment="Top" Width="195" Height="21"  Value="{Binding ProgressNumber, Mode=OneWay}" Visibility="{Binding ProgressVisibility}"/>
+        <Label Content="{Binding CurrentStatus}" HorizontalAlignment="Left" Margin="398,26,0,0" VerticalAlignment="Top"/>
+        <Controls:SplitButton 
+        	HorizontalAlignment="Right" Height="23" Width="40" Margin="0,52,417,0"
+        	SelectedIndex="{Binding SelectedNoInstruments}"
+        	ItemsSource="{Binding NoInstrumentsList}"
+        	DisplayMemberPath="NoInstruments"
+        	VerticalAlignment="Top" />
+        <Label Content="Instruments:" HorizontalAlignment="Left" Margin="118,52,0,0" VerticalAlignment="Top" Width="75"/>
 
     </Grid>
 

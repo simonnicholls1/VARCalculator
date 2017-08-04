@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace VARCalculator.Model
 {
-    public class InstrumentModel
+    public struct InstrumentModel
     {
         public string instrumentID { get; set; }
         public Series<DateTime, double> instrumentReturns { get; set; }
@@ -13,17 +13,18 @@ namespace VARCalculator.Model
         public double mean { get; set; }
         public double volatility { get; set; }
         public double VAR { get; set; }
+        public double[] instrumentReturnsArray { get; set; }
 
-        public InstrumentModel(string instrumentID)
-        {
-            this.instrumentID = instrumentID;
-        }
+        //public InstrumentModel(string instrumentID)
+        //{
+        //    this.instrumentID = instrumentID;
+        //}
 
-        public InstrumentModel(string instrumentID, double portfolioWeight)
-        {
-            this.instrumentID = instrumentID;
-            this.portfolioWeight = portfolioWeight;
-        }
+        //public InstrumentModel(string instrumentID, double portfolioWeight)
+        //{
+        //    this.instrumentID = instrumentID;
+        //    this.portfolioWeight = portfolioWeight;
+        //}
 
     }
 }

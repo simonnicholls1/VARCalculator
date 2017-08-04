@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using VARCalculator.DataAccess;
 using VARCalculator.Model;
@@ -23,57 +24,127 @@ namespace VARCalculator.Services
         {
             varCalculator = new VARCalculatorService();
             returnsDAO = new ReturnsDAO();
-            returnsDAO.LoadInstrumentPricesMemory();
+            //returnsDAO.LoadInstrumentPricesMemory();
 
-            //TEST WEIGHT DATA
-            double noOfStocks = 3000;
-            portfolioWeights = new Dictionary<string, double>();
-            double weight = (1 / noOfStocks);
-            for (int i = 0; i < noOfStocks; i++)
-            {
-                portfolioWeights.Add(i.ToString() , weight);
-            }
         }
 
-        public VAROutputModel ProcessVAR(double portfolioValue, double confidenceLevel, DateTime startDate, DateTime endDate)
+        public VAROutputModel ProcessVAR(double portfolioValue, double confidenceLevel, int noOfInstruments,  DateTime startDate, DateTime endDate, CancellationToken cancellationToken, IProgress<int> progress, IProgress<string> status)
         {
+            //Equally weighted
+            portfolioWeights = new Dictionary<string, double>();
+            double weight = (1 /(double) noOfInstruments);
+            for (int i = 0; i < noOfInstruments; i++)
+            {
+                portfolioWeights.Add(i.ToString(), weight);
+            }
+
+            //Load returns into memory if not already done
+            if (returnsDAO.instrumentPricesHistory == null)
+            {
+                status.Report("Loading prices into memory please wait...");
+                try
+                {
+                    returnsDAO.LoadInstrumentPricesMemory();
+                }
+                catch(DAOException ex)
+                {
+                    if(ex.GetErrorCode() == DAOException.FILE_NA)
+                    {
+                        throw new ServiceException(ServiceException.DATA_ACCESS_ERROR, "Could not find file for stock prices please check settings");
+                    }
+                    else
+                    {
+                        throw new ServiceException(ServiceException.UNKNOWN_ERROR, "Unkown error when loading prices please try again");
+                    }
+                }
+                catch(Exception ex)
+                {
+                    throw new ServiceException(ServiceException.UNKNOWN_ERROR, "Unkown error when loading prices please try again");
+                }
+            }
 
             ConcurrentDictionary<string, InstrumentModel> instrumentDictionary = new ConcurrentDictionary<string, InstrumentModel>();
 
+            //For each instrument get the returns for the selected dates then calculate a mean and portfolio value
+            status.Report("Collecting returns and calculating means");
             Parallel.ForEach(portfolioWeights, instrument =>
             {
+                //Check if request has been cancelled
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
 
-                //Create a new stock object to store details on the stock, in future might want
-                //to look at other attributes like largets exposures, mean and var separately
-                InstrumentModel currentInstrument = new InstrumentModel(instrument.Key, instrument.Value);
+                try
+                {
 
-                //Get returns for specific instrument, should think about not storing this in 
-                //object if already have returns in memory
-                currentInstrument.instrumentReturns = returnsDAO.getInstrumentReturns(instrument.Key, startDate, endDate);
+                    //Create a new stock object to store details on the stock, in future might want
+                    //to look at other attributes like largets exposures, mean and var separately
+                    InstrumentModel currentInstrument = new InstrumentModel();
+                    currentInstrument.instrumentID = instrument.Key;
+                    currentInstrument.portfolioWeight = instrument.Value;
 
-                //Calculate mean and vol for VAR and store in stock object
-                //TODO convert dataframe to array of returns
-                currentInstrument.mean = varCalculator.calculateMean(currentInstrument.instrumentReturns);
-                currentInstrument.volatility = varCalculator.calculateVol(currentInstrument.instrumentReturns);
+                    //Get returns for specific instrument, should think about not storing this in 
+                    //object if already have returns in memory
+                    currentInstrument.instrumentReturnsArray = returnsDAO.getInstrumentReturns(instrument.Key, startDate, endDate);
 
-                //Need how much of the stock we own to calculate VAR
-                double amountOwned = instrument.Value * portfolioValue;
+                    //Calculate mean for VAR and store in stock object
+                    currentInstrument.mean = varCalculator.calculateMean(currentInstrument.instrumentReturnsArray);
+                    currentInstrument.volatility = varCalculator.calculateVol(currentInstrument.instrumentReturnsArray, currentInstrument.mean);
 
-                //Now calculate VAR
-                //currentInstrument.VAR = varCalculator.calculateVAR(instrument.Key, amountOwned, currentInstrument.mean, currentInstrument.volatility, confidenceLevel);
+                    //Need how much of the stock we own to calculate VAR
+                    double amountOwned = instrument.Value * portfolioValue;
 
-                //Add stock to concurrent dcitionary of instruments
-                instrumentDictionary.TryAdd(instrument.Key, currentInstrument);                
+                    instrumentDictionary.TryAdd(instrument.Key, currentInstrument);
+                }
+                catch(DAOException ex)
+                {
+                    throw new ServiceException(ServiceException.UNKNOWN_ERROR, "Error occurred when processing instrument returns and mean");
+                }
+                catch(ServiceException ex)
+                {
+                    throw new ServiceException(ServiceException.UNKNOWN_ERROR, "Error occurred when processing instrument returns and mean");
+                }
+                catch(Exception ex)
+                {
+                    throw new ServiceException(ServiceException.UNKNOWN_ERROR, "Error occurred when processing instrument returns and mean");
+                }
             });
 
-            //Produce covariance matrix
-            double portfolioVol = varCalculator.calculatePortfolioVol(instrumentDictionary, portfolioWeights);
+            progress.Report(10);
 
-            //Now work out total var of portfolio
-            double totalVAR = varCalculator.calculateVAR(portfolioValue, portfolioVol, confidenceLevel);
+            //Check if it has been cancelled and if so set VAR to 0
+            VAROutputModel VAROutput;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, portfolioValue, confidenceLevel * 100, 0);
+                progress.Report(100);
+                status.Report("");
+            }
+            else
+            {
+                //Produce covariance matrix
+                double portfolioVol = varCalculator.calculatePortfolioVol(instrumentDictionary, portfolioWeights, cancellationToken, progress, status);
 
-            VAROutputModel VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, portfolioValue, confidenceLevel * 100, Math.Round(totalVAR, 2));
+                //Check again if task has been cancelled 
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, portfolioValue, confidenceLevel * 100, 0);
+                    progress.Report(100);
+                    status.Report("");
+                }
+                else
+                {
 
+                    //Now work out total var of portfolio
+                    status.Report("Calculating VAR");
+                    double totalVAR = varCalculator.calculateVAR(portfolioValue, portfolioVol, confidenceLevel);
+                    progress.Report(85);
+                    VAROutput = new VAROutputModel(instrumentDictionary.Keys.Count, startDate, endDate, DateTime.Now, portfolioValue, confidenceLevel * 100, Math.Round(totalVAR, 2));
+                    progress.Report(100);
+                    status.Report("");
+                }
+            }
             return VAROutput;
         }
               

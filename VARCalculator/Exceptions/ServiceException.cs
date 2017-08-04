@@ -13,6 +13,7 @@ namespace System
         public static int UNKNOWN_ERROR = 2;
 
         private int ErrorCode;
+        public static int DIMENSIONS_ERROR;
 
         public ServiceException(int errorCode)
             : base()

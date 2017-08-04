@@ -70,6 +70,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\NoInstrumentsModel.cs" />
     <Compile Include="Model\VAROutputModel.cs" />
     <Compile Include="Model\ConfLevelModel.cs" />
     <Compile Include="Services\VARProcessor.cs" />
@@ -85,7 +86,6 @@
     <Compile Include="DataAccess\ReturnsDAO.cs" />
     <Compile Include="Exceptions\DAOException.cs" />
     <Compile Include="Exceptions\ServiceException.cs" />
-    <Compile Include="Interfaces\IReportDAO.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\InstrumentModel.cs" />
@@ -106,9 +106,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="Data\citi_prices.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="Data\stock_list.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
